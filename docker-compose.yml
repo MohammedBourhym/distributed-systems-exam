@@ -1,0 +1,66 @@
+services:
+  axonserver:
+    image: 'axoniq/axonserver:latest'
+    environment:
+      - 'AXONIQ_AXONSERVER_STANDALONE=TRUE'
+    ports:
+      - '8024:8024'
+      - '8124:8124'
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=servicesdb'
+      - 'POSTGRES_PASSWORD=1234'
+      - 'POSTGRES_USER=admin'
+    volumes:
+      - servicesdb:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - services-net
+  pgadmin4:
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "8088:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: med@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: azer
+    volumes:
+      - services_pgadmin_data:/var/lib/pgadmin
+    networks:
+      - services-net
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+    networks:
+      - internal
+
+volumes:
+  servicesdb:
+  services_pgadmin_data:
+
+networks:
+  services-net:
+    driver: bridge
+  internal:
+    driver: bridge
