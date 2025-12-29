@@ -10,17 +10,13 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-
-spring:
-  cloud:
-    gateway:
       routes:
         - id: inventory-service
-          uri: lb://inventory-service
+          uri: lb://inventory
           predicates:
             - Path=/inventory/**
         - id: order-service
-          uri: lb://order-service
+          uri: lb://order
           predicates:
             - Path=/orders/**
 
